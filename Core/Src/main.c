@@ -89,7 +89,10 @@ int main(void)
   MX_GPIO_Init();
   MX_CAN_Init();
   /* USER CODE BEGIN 2 */
+  HAL_CAN_Start(&hcan);
 
+	__HAL_CAN_ENABLE_IT(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING);
+	__HAL_CAN_ENABLE_IT(&hcan, CAN_IT_RX_FIFO1_MSG_PENDING);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,6 +105,27 @@ int main(void)
     // let the LED1 blink every 1 second
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
     HAL_Delay(1000);
+    // send a CAN message 
+    CAN_TxHeaderTypeDef TxHeader;
+    uint32_t TxMailbox;
+    uint8_t TxData[8];
+    TxHeader.DLC = 8;
+    TxHeader.StdId = 0x123;
+    TxHeader.IDE = CAN_ID_STD;
+    TxHeader.RTR = CAN_RTR_DATA;
+    TxHeader.TransmitGlobalTime = DISABLE;
+    TxData[0] = 0x01;
+    TxData[1] = 0x02;
+    TxData[2] = 0x03;
+    TxData[3] = 0x04;
+    TxData[4] = 0x05;
+    TxData[5] = 0x06;
+    TxData[6] = 0x07;
+    TxData[7] = 0x08;
+    if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
+    {
+      Error_Handler();
+    }
   }
   /* USER CODE END 3 */
 }
