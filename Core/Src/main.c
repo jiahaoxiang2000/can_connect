@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2024 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -59,9 +59,9 @@ void SystemClock_Config(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -89,10 +89,21 @@ int main(void)
   MX_GPIO_Init();
   MX_CAN_Init();
   /* USER CODE BEGIN 2 */
+  CANFilterConfig_AnyId();
   HAL_CAN_Start(&hcan);
 
-	__HAL_CAN_ENABLE_IT(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING);
-	__HAL_CAN_ENABLE_IT(&hcan, CAN_IT_RX_FIFO1_MSG_PENDING);
+  __HAL_CAN_ENABLE_IT(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING);
+  __HAL_CAN_ENABLE_IT(&hcan, CAN_IT_RX_FIFO1_MSG_PENDING);
+
+  // CAN data config
+  CAN_TxHeaderTypeDef TxHeader;
+  uint32_t TxMailbox;
+  uint8_t TxData[8];
+  TxHeader.DLC = 8;
+  TxHeader.StdId = 0x123;
+  TxHeader.IDE = CAN_ID_STD;
+  TxHeader.RTR = CAN_RTR_DATA;
+  TxHeader.TransmitGlobalTime = DISABLE;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -105,43 +116,35 @@ int main(void)
     // let the LED1 blink every 1 second
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
     HAL_Delay(1000);
-    // send a CAN message 
-    CAN_TxHeaderTypeDef TxHeader;
-    uint32_t TxMailbox;
-    uint8_t TxData[8];
-    TxHeader.DLC = 8;
-    TxHeader.StdId = 0x123;
-    TxHeader.IDE = CAN_ID_STD;
-    TxHeader.RTR = CAN_RTR_DATA;
-    TxHeader.TransmitGlobalTime = DISABLE;
-    TxData[0] = 0x01;
-    TxData[1] = 0x02;
-    TxData[2] = 0x03;
-    TxData[3] = 0x04;
-    TxData[4] = 0x05;
-    TxData[5] = 0x06;
-    TxData[6] = 0x07;
-    TxData[7] = 0x08;
-    if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
+    // send a CAN message
+    // the data is recive by the interput on RxHeader ,RxData[8];
+    // when we recive the data, we want to send the data back to the sender
+    // by check the recive_flag flag to back transmit the data
+
+    if (recive_flag)
     {
-      Error_Handler();
+      recive_flag = 0;
+      if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, RxData, &TxMailbox) != HAL_OK)
+      {
+        Error_Handler();
+      }
     }
   }
   /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -155,9 +158,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -174,9 +176,9 @@ void SystemClock_Config(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -188,14 +190,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
