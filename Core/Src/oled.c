@@ -44,17 +44,17 @@ void OLED_Set_Pos(unsigned char x, unsigned char y)
 	OLED_WR_Byte(((x & 0xf0) >> 4) | 0x10, OLED_CMD);
 	OLED_WR_Byte((x & 0x0f) | 0x01, OLED_CMD);
 }
-// ����OLED��ʾ
+// open OLED display
 void OLED_Display_On(void)
 {
-	OLED_WR_Byte(0X8D, OLED_CMD); // SET DCDC����
+	OLED_WR_Byte(0X8D, OLED_CMD); // SET DCDC
 	OLED_WR_Byte(0X14, OLED_CMD); // DCDC ON
 	OLED_WR_Byte(0XAF, OLED_CMD); // DISPLAY ON
 }
-// �ر�OLED��ʾ
+// close OLED display
 void OLED_Display_Off(void)
 {
-	OLED_WR_Byte(0X8D, OLED_CMD); // SET DCDC����
+	OLED_WR_Byte(0X8D, OLED_CMD); // SET DCDC
 	OLED_WR_Byte(0X10, OLED_CMD); // DCDC OFF
 	OLED_WR_Byte(0XAE, OLED_CMD); // DISPLAY OFF
 }
@@ -64,23 +64,22 @@ void OLED_Clear(void)
 	u8 i, n;
 	for (i = 0; i < 8; i++)
 	{
-		OLED_WR_Byte(0xb0 + i, OLED_CMD); 
-		OLED_WR_Byte(0x02, OLED_CMD);	  
-		OLED_WR_Byte(0x10, OLED_CMD);	  
+		OLED_WR_Byte(0xb0 + i, OLED_CMD);
+		OLED_WR_Byte(0x02, OLED_CMD);
+		OLED_WR_Byte(0x10, OLED_CMD);
 		for (n = 0; n < 128; n++)
 			OLED_WR_Byte(0, OLED_DATA);
-	} 
+	}
 }
 
-// ��ָ��λ����ʾһ���ַ�,���������ַ�
+// one position to show char
 // x:0~127
 // y:0~63
-// mode:0,������ʾ;1,������ʾ
-// size:ѡ������ 16/12
+// chr: char to show
 void OLED_ShowChar(u8 x, u8 y, u8 chr)
 {
 	unsigned char c = 0, i = 0;
-	c = chr - ' '; // �õ�ƫ�ƺ��ֵ
+	c = chr - ' ';
 	if (x > Max_Column - 1)
 	{
 		x = 0;
@@ -102,7 +101,7 @@ void OLED_ShowChar(u8 x, u8 y, u8 chr)
 			OLED_WR_Byte(F6x8[c][i], OLED_DATA);
 	}
 }
-// m^n����
+// m^n function
 u32 oled_pow(u8 m, u8 n)
 {
 	u32 result = 1;
@@ -110,33 +109,32 @@ u32 oled_pow(u8 m, u8 n)
 		result *= m;
 	return result;
 }
-// ��ʾ2������
-// x,y :�������
-// len :���ֵ�λ��
-// size:�����С
-// mode:ģʽ	0,���ģʽ;1,����ģʽ
-// num:��ֵ(0~4294967295);
-void OLED_ShowNum(u8 x, u8 y, u32 num, u8 len, u8 size)
+
+// show the number, auto covert the number digit to charactor, auto
+// x,y : position
+// len : number of digit
+void OLED_ShowNum(u8 x, u8 y, u32 num, u8 len)
 {
 	u8 t, temp;
 	u8 enshow = 0;
 	for (t = 0; t < len; t++)
 	{
 		temp = (num / oled_pow(10, len - t - 1)) % 10;
+		// start 0 not to show
 		if (enshow == 0 && t < (len - 1))
 		{
 			if (temp == 0)
 			{
-				OLED_ShowChar(x + (size / 2) * t, y, ' ');
+				OLED_ShowChar(x + (SIZE / 2) * t, y, ' ');
 				continue;
 			}
 			else
 				enshow = 1;
 		}
-		OLED_ShowChar(x + (size / 2) * t, y, temp + '0');
+		OLED_ShowChar(x + (SIZE / 2) * t, y, temp + '0');
 	}
 }
-// ��ʾһ���ַ��Ŵ�
+// show the string on the 8x16 font
 void OLED_ShowString(u8 x, u8 y, u8 *chr)
 {
 	unsigned char j = 0;
@@ -152,24 +150,8 @@ void OLED_ShowString(u8 x, u8 y, u8 *chr)
 		j++;
 	}
 }
-// ��ʾ����
-void OLED_ShowCHinese(u8 x, u8 y, u8 no)
-{
-	u8 t, adder = 0;
-	OLED_Set_Pos(x, y);
-	for (t = 0; t < 16; t++)
-	{
-		OLED_WR_Byte(Hzk[2 * no][t], OLED_DATA);
-		adder += 1;
-	}
-	OLED_Set_Pos(x, y + 1);
-	for (t = 0; t < 16; t++)
-	{
-		OLED_WR_Byte(Hzk[2 * no + 1][t], OLED_DATA);
-		adder += 1;
-	}
-}
-/***********������������ʾ��ʾBMPͼƬ128��64��ʼ������(x,y),x�ķ�Χ0��127��yΪҳ�ķ�Χ0��7*****************/
+
+// show the bmp figure, the one point is the white-black 8-bit data.
 void OLED_DrawBMP(unsigned char x0, unsigned char y0, unsigned char x1, unsigned char y1, unsigned char BMP[])
 {
 	unsigned int j = 0;
