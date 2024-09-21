@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "oled.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -89,6 +89,12 @@ int main(void)
   MX_GPIO_Init();
   MX_CAN_Init();
   /* USER CODE BEGIN 2 */
+  // LED init
+  OLED_Init();
+  OLED_Clear();
+  uint8_t t = 0; // show count
+
+  // CAN init
   CANFilterConfig_AnyId();
   HAL_CAN_Start(&hcan);
 
@@ -115,7 +121,29 @@ int main(void)
     /* USER CODE BEGIN 3 */
     // let the LED1 blink every 1 second
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+
     HAL_Delay(1000);
+
+    // OLED display
+    OLED_Clear();
+    OLED_ShowCHinese(0, 0, 0);   // ��
+    OLED_ShowCHinese(18, 0, 1);  // ��
+    OLED_ShowCHinese(36, 0, 2);  // ԰
+    OLED_ShowCHinese(54, 0, 3);  // ��
+    OLED_ShowCHinese(72, 0, 4);  // ��
+    OLED_ShowCHinese(90, 0, 5);  // ��
+    OLED_ShowCHinese(108, 0, 6); // ��
+    OLED_ShowString(0, 3, (uint8_t *)"1.3' OLED TEST");
+    // OLED_ShowString(8,2,"ZHONGJINGYUAN");
+    //	OLED_ShowString(20,4,"2014/05/01");
+    OLED_ShowString(0, 6, (uint8_t *)"ASCII:");
+    OLED_ShowString(63, 6, (uint8_t *)"CODE:");
+    OLED_ShowChar(48, 6, t); // ��ʾASCII�ַ�
+    t++;
+    if (t > '~')
+      t = ' ';
+    OLED_ShowNum(103, 6, t, 3, 16); // ��ʾASCII�ַ�����ֵ
+
     // send a CAN message
     // the data is recive by the interput on RxHeader ,RxData[8];
     // when we recive the data, we want to send the data back to the sender
