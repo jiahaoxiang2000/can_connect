@@ -55,7 +55,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+#define IS_SENT 0
 /* USER CODE END 0 */
 
 /**
@@ -92,7 +92,6 @@ int main(void)
   // LED init is 128*64 pixel
   OLED_Init();
   OLED_Clear();
-  uint8_t t = 0; // show count
 
   // CAN init
   CANFilterConfig_AnyId();
