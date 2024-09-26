@@ -127,7 +127,7 @@ int main(void)
     OLED_Clear();
     OLED_ShowString(0, 0, (uint8_t *)"can test:");
     OLED_ShowString(0, 3, (uint8_t *)"SEND:");
-    OLED_ShowNum(0, 6, 103, 3); 
+    OLED_ShowNum(0, 6, 103, 3);
 
     // send a CAN message
     // the data is recive by the interput on RxHeader ,RxData[8];
@@ -141,6 +141,27 @@ int main(void)
       {
         Error_Handler();
       }
+    }
+
+    // check the pin state for the smoke sensor
+    if (HAL_GPIO_ReadPin(SMOKE_GPIO_Port, SMOKE_Pin) == GPIO_PIN_RESET)
+    {
+      // Add a delay for debouncing
+      HAL_Delay(50); // 50 milliseconds delay
+
+      // Check the pin state again after the delay
+      if (HAL_GPIO_ReadPin(SMOKE_GPIO_Port, SMOKE_Pin) == GPIO_PIN_RESET)
+      {
+        HAL_GPIO_WritePin(LED_SMOKE_GPIO_Port, LED_SMOKE_Pin, GPIO_PIN_SET);
+      }
+      else
+      {
+        HAL_GPIO_WritePin(LED_SMOKE_GPIO_Port, LED_SMOKE_Pin, GPIO_PIN_RESET);
+      }
+    }
+    else
+    {
+      HAL_GPIO_WritePin(LED_SMOKE_GPIO_Port, LED_SMOKE_Pin, GPIO_PIN_RESET);
     }
   }
   /* USER CODE END 3 */
