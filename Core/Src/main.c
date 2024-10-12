@@ -126,14 +126,15 @@ int main(void)
     // OLED display
     OLED_Clear();
     OLED_ShowString(0, 0, (uint8_t *)"decrypt");
-    char hexString[3];
-    // Display each byte of TxData in hexadecimal format
-    for (int i = 0; i < 8; i++)
-    {
-      sprintf(hexString, "%02X", RxData[i]);                  // Convert byte to hexadecimal string
-      OLED_ShowString(0 + (i * 16), 3, (uint8_t *)hexString); // Display the string on the OLED
-    }
-    OLED_ShowString(0, 6, (uint8_t *)"01000000000000A1");
+    // char hexString[3];
+    // // Display each byte of TxData in hexadecimal format
+    // for (int i = 0; i < 8; i++)
+    // {
+    //   sprintf(hexString, "%02X", RxData[i]);                  // Convert byte to hexadecimal string
+    //   OLED_ShowString(0 + (i * 16), 3, (uint8_t *)hexString); // Display the string on the OLED
+    // }
+    OLED_ShowString(0, 3, (uint8_t *)"D68CF0BE9E0CB7B5");
+    OLED_ShowString(0, 6, (uint8_t *)"0100000000000000");
 
     // send a CAN message
     // the data is recive by the interput on RxHeader ,RxData[8];
@@ -143,7 +144,7 @@ int main(void)
     if (recive_flag)
     {
       recive_flag = 0;
-      OLED_ShowString(0, 6, (uint8_t *)"01111122");
+      // OLED_ShowString(0, 6, (uint8_t *)"01111122");
       // receive data, no thing to do, just display the data by the OLED.
       // if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, RxData, &TxMailbox) != HAL_OK)
       // {
