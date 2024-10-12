@@ -103,7 +103,7 @@ int main(void)
   // CAN data config
   CAN_TxHeaderTypeDef TxHeader;
   uint32_t TxMailbox;
-  uint8_t TxData[8];
+  uint8_t TxData[8] = {0};
   TxHeader.DLC = 8;
   TxHeader.StdId = 0x123;
   TxHeader.IDE = CAN_ID_STD;
@@ -125,22 +125,34 @@ int main(void)
 
     // OLED display
     OLED_Clear();
-    OLED_ShowString(0, 0, (uint8_t *)"can test:");
-    OLED_ShowString(0, 3, (uint8_t *)"SEND:");
-    OLED_ShowNum(0, 6, 103, 3);
+    OLED_ShowString(0, 0, (uint8_t *)"encrypt");
+    char hexString[3];
+    // Display each byte of TxData in hexadecimal format
+    for (int i = 0; i < 8; i++)
+    {
+      sprintf(hexString, "%02X", TxData[i]);                  // Convert byte to hexadecimal string
+      OLED_ShowString(0 + (i * 16), 3, (uint8_t *)hexString); // Display the string on the OLED
+    }
+    OLED_ShowString(0, 6, (uint8_t *)"01000000000000A1");
 
     // send a CAN message
     // the data is recive by the interput on RxHeader ,RxData[8];
     // when we recive the data, we want to send the data back to the sender
     // by check the recive_flag flag to back transmit the data
+    // here is for receive board to handle
+    // if (recive_flag)
+    // {
+    //   recive_flag = 0;
+    //   if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, RxData, &TxMailbox) != HAL_OK)
+    //   {
+    //     Error_Handler();
+    //   }
+    // }
 
-    if (recive_flag)
+    // one second send a data
+    if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
     {
-      recive_flag = 0;
-      if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, RxData, &TxMailbox) != HAL_OK)
-      {
-        Error_Handler();
-      }
+      Error_Handler();
     }
 
     // check the pin state for the smoke sensor
@@ -153,15 +165,18 @@ int main(void)
       if (HAL_GPIO_ReadPin(SMOKE_GPIO_Port, SMOKE_Pin) == GPIO_PIN_RESET)
       {
         HAL_GPIO_WritePin(LED_SMOKE_GPIO_Port, LED_SMOKE_Pin, GPIO_PIN_SET);
+        TxData[0] = 0;
       }
       else
       {
         HAL_GPIO_WritePin(LED_SMOKE_GPIO_Port, LED_SMOKE_Pin, GPIO_PIN_RESET);
+        TxData[0] = 1;
       }
     }
     else
     {
       HAL_GPIO_WritePin(LED_SMOKE_GPIO_Port, LED_SMOKE_Pin, GPIO_PIN_RESET);
+      TxData[0] = 1;
     }
   }
   /* USER CODE END 3 */
