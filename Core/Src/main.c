@@ -56,6 +56,7 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 #define IS_SENT 0
+#define Trigger_Inter_time 20
 /* USER CODE END 0 */
 
 /**
@@ -109,6 +110,8 @@ int main(void)
   TxHeader.IDE = CAN_ID_STD;
   TxHeader.RTR = CAN_RTR_DATA;
   TxHeader.TransmitGlobalTime = DISABLE;
+
+   int trigger_flag = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -133,8 +136,25 @@ int main(void)
     //   sprintf(hexString, "%02X", RxData[i]);                  // Convert byte to hexadecimal string
     //   OLED_ShowString(0 + (i * 16), 3, (uint8_t *)hexString); // Display the string on the OLED
     // }
-    OLED_ShowString(0, 3, (uint8_t *)"D68CF0BE9E0CB7B5");
-    OLED_ShowString(0, 6, (uint8_t *)"0100000000000000");
+    if (trigger_flag < Trigger_Inter_time / 2)
+    {
+      trigger_flag++;
+      OLED_ShowString(0, 3, (uint8_t *)"0100000000000000");
+      OLED_ShowString(0, 6, (uint8_t *)"D68CF0BE9E0CB7B5");
+    }
+    else if ((Trigger_Inter_time / 2 <= trigger_flag) && (trigger_flag < Trigger_Inter_time -1))
+    {
+      /* code */
+      trigger_flag++;
+      OLED_ShowString(0, 3, (uint8_t *)"0000000000000000");
+      OLED_ShowString(0, 6, (uint8_t *)"1ABE0B980CB1B53D");
+    }
+    else
+    {
+      trigger_flag = 0;
+      OLED_ShowString(0, 3, (uint8_t *)"0000000000000000");
+      OLED_ShowString(0, 6, (uint8_t *)"1ABE0B980CB1B53D");
+    }
 
     // send a CAN message
     // the data is recive by the interput on RxHeader ,RxData[8];
